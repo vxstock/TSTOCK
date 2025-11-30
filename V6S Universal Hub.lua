@@ -1,4 +1,4 @@
-﻿-- Urban Autofarm UI (Optimized, single LocalScript)
+-- Urban Autofarm UI (Optimized, single LocalScript)
 -- Paste into StarterPlayer -> StarterPlayerScripts (LocalScript)
 
 -- Services
@@ -63,7 +63,7 @@ local Screen = new("ScreenGui", { Name = "UrbanAutofarmUI", Parent = PlayerGui, 
 -- Main panel (compact urban)
 local Main = new("Frame", {
     Parent = Screen, Name = "Main",
-    Size = UDim2.new(0,420,0,360),
+    Size = UDim2.new(0,440,0,360),
     Position = UDim2.new(0.02,0,0.08,0),
     BackgroundColor3 = PAL.bg, BorderSizePixel = 0, Active = true
 })
@@ -188,11 +188,45 @@ end)
 local evalBtn = new("TextButton", { Parent = FrameHome, Position = UDim2.new(0,200,0,80), Size = UDim2.new(0,180,0,28), Text = "Evaluate", Font = Enum.Font.GothamBold, TextSize = 13, BackgroundColor3 = PAL.panel, TextColor3 = PAL.text, AutoButtonColor = true })
 new("UICorner", { Parent = evalBtn, CornerRadius = UDim.new(0,8) })
 
-label(FrameHome, "List of NPCs", UDim2.new(0,6,0,116))
-local lister = new("ScrollingFrame", { Parent = FrameHome, Position = UDim2.new(0,6,0,140), Size = UDim2.new(0,200,1,-156), CanvasSize = UDim2.new(0,0,0,0), ScrollBarThickness = 6, BackgroundColor3 = Color3.fromRGB(22,22,22) })
+-- Container for label + search bar
+local npcHeader = new("Frame", {
+    Parent = FrameHome,
+    Position = UDim2.new(0,6,0,116),
+    Size = UDim2.new(1,-12,0,20),
+    BackgroundTransparency = 1
+})
+
+label(npcHeader, "List of NPCs", UDim2.new(0,0,0,0))
+
+-- Search box
+local npcSearch = new("TextBox", {
+    Parent = npcHeader,
+    Position = UDim2.new(0,180,0,0),
+    Size = UDim2.new(0,200,0,20),
+    BackgroundColor3 = Color3.fromRGB(36,36,36),
+    TextColor3 = PAL.text,
+    PlaceholderText = "Search...",
+    ClearTextOnFocus = false,
+    Font = Enum.Font.Gotham,
+    TextSize = 13
+})
+new("UICorner", { Parent = npcSearch, CornerRadius = UDim.new(0,4) })
+
+-- NPC list
+local lister = new("ScrollingFrame", {
+    Parent = FrameHome,
+    Position = UDim2.new(0,6,0,140),
+    Size = UDim2.new(0,230,1,-156), -- slightly wider list
+    CanvasSize = UDim2.new(0,0,0,0),
+    ScrollBarThickness = 6,
+    BackgroundColor3 = Color3.fromRGB(22,22,22)
+})
 new("UICorner", { Parent = lister, CornerRadius = UDim.new(0,8) })
-local listLayout = new("UIListLayout", { Parent = lister, Padding = UDim.new(0,6) })
-listLayout.SortOrder = Enum.SortOrder.LayoutOrder
+local listLayout = new("UIListLayout", {
+    Parent = lister,
+    Padding = UDim.new(0,6),
+    SortOrder = Enum.SortOrder.LayoutOrder
+})
 
 -- Player list UI (placed directly to the right of NPC list)
 label(FrameHome, "Players", UDim2.new(0,212,0,116))
@@ -319,8 +353,22 @@ local function Evaluate()
             end
         end)
     end
+    
+	-- Filtering NPC list live
+	npcSearch:GetPropertyChangedSignal("Text"):Connect(function()
+    	local txt = npcSearch.Text:lower()
+
+    	for _,child in ipairs(lister:GetChildren()) do
+        	if child:IsA("TextButton") then
+            	local name = child.Text:lower()
+            	child.Visible = name:find(txt, 1, true) ~= nil
+        	end
+    	end
+
     lister.CanvasSize = UDim2.new(0,0,0, listLayout.AbsoluteContentSize.Y)
+	end)
 end
+
 
 -- populate playerList with interactive buttons and hook join/leave
 local function refreshPlayerList()
